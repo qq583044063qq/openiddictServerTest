@@ -1,0 +1,2 @@
+# openiddictServerTest
+openId auth test
