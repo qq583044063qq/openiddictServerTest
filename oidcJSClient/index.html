@@ -47,12 +47,12 @@
 
     function api() {
       mgr.getUser().then(function (user) {
-        var url = "https://localhost:6001/identity";
+        var url = "http://localhost:5009/api";
 
         var xhr = new XMLHttpRequest();
         xhr.open("GET", url);
         xhr.onload = function () {
-          log(xhr.status, JSON.parse(xhr.responseText));
+          log(xhr.status, xhr.responseText);
         }
         xhr.setRequestHeader("Authorization", "Bearer " + user.access_token);
         xhr.send();
