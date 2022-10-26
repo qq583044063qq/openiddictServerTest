@@ -21,6 +21,7 @@ namespace TrueCredit.Auth.Server.Controllers
         private readonly IEmailSender _emailSender;
         private readonly ISmsSender _smsSender;
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private static bool _databaseChecked;
 
         public AccountController(
@@ -28,13 +29,14 @@ namespace TrueCredit.Auth.Server.Controllers
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
             ISmsSender smsSender,
-            ApplicationDbContext applicationDbContext)
+            ApplicationDbContext applicationDbContext, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _smsSender = smsSender;
             _applicationDbContext = applicationDbContext;
+            _roleManager = roleManager;
         }
 
         //
@@ -60,7 +62,7 @@ namespace TrueCredit.Auth.Server.Controllers
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     return RedirectToLocal(returnUrl);
@@ -105,18 +107,29 @@ namespace TrueCredit.Auth.Server.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.UserName, Email = model.Email, CreateTime = DateTime.Now };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    //创建了一个用户后 之后给他添加角色
+                    //_logger.LogInformation("User created a new monitors with password.");
+                    if (!await _roleManager.RoleExistsAsync(UserRoleName.User))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(UserRoleName.User));
+                    }
+                    var IR = await _userManager.AddToRoleAsync(user, UserRoleName.User);
+                    if (IR.Succeeded)
+                    {
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return RedirectToLocal(returnUrl);
+                    }
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
                     // Send an email with this link
                     //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     //var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Context.Request.Scheme);
                     //await _emailSender.SendEmailAsync(model.Email, "Confirm your account",
                     //    "Please confirm your account by clicking this link: <a href=\"" + callbackUrl + "\">link</a>");
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToLocal(returnUrl);
+                    
                 }
                 AddErrors(result);
             }

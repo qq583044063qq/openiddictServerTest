@@ -61,7 +61,13 @@ namespace TrueCredit.Auth.Server
                 options.ClaimsIdentity.UserIdClaimType = Claims.Subject;
                 options.ClaimsIdentity.RoleClaimType = Claims.Role;
             });
-
+            // 配置授权策略
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(UserPolicyName.User, policy => policy.RequireRole(UserRoleName.User, UserRoleName.Administrator, UserRoleName.MasterAdministrator));
+                options.AddPolicy(UserPolicyName.Administrator, policy => policy.RequireRole(UserRoleName.Administrator, UserRoleName.MasterAdministrator));
+                options.AddPolicy(UserPolicyName.MasterAdministrator, policy => policy.RequireRole(UserRoleName.MasterAdministrator));
+            });
             // OpenIddict offers native integration with Quartz.NET to perform scheduled tasks
             // (like pruning orphaned authorizations/tokens from the database) at regular intervals.
             services.AddQuartz(options =>

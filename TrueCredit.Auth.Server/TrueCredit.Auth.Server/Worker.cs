@@ -39,11 +39,11 @@ namespace TrueCredit.Auth.Server
                         DisplayName = "Aurelia client application",
                         PostLogoutRedirectUris =
                         {
-                            new Uri("http://127.0.0.1:5500/oidcJSClient/index.html")
+                            new Uri("http://127.0.0.1:5500/index.html")
                         },
                         RedirectUris =
                         {
-                            new Uri("http://127.0.0.1:5500/oidcJSClient/callback.html")
+                            new Uri("http://127.0.0.1:5500/callback.html")
                         },
                         Permissions =
                         {
