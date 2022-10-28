@@ -348,3 +348,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+/TrueCredit.Auth.Server/TrueCredit.Auth.Server/ApplicationDb.db-shm
+/TrueCredit.Auth.Server/TrueCredit.Auth.Server/ApplicationDb.db-wal

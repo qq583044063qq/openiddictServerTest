@@ -6,7 +6,6 @@ using OpenIddict.Validation.AspNetCore;
 using TestApi1;
 
 var builder = WebApplication.CreateBuilder(args);
-
 //¿çÓòÅäÖÃ
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy", builder =>
 {

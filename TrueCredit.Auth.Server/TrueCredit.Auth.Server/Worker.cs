@@ -30,7 +30,7 @@ namespace TrueCredit.Auth.Server
             async Task CreateApplicationsAsync()
             {
                 var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
-
+                // 面向公共登录站点的授权设置
                 if (await manager.FindByClientIdAsync("aurelia") == null)
                 {
                     var descriptor = new OpenIddictApplicationDescriptor
@@ -70,8 +70,41 @@ namespace TrueCredit.Auth.Server
                 }
                 else
                 {
-                    var app = manager.FindByClientIdAsync("aurelia").Result;
-                    Console.WriteLine(app.GetType());
+                    // 修改一个存在的授权配置
+                    //var app = manager.FindByClientIdAsync("aurelia").Result;
+                    //var descriptor = new OpenIddictApplicationDescriptor
+                    //{
+                    //    ClientId = "aurelia",
+                    //    Type = ClientTypes.Public,
+                    //    DisplayName = "Aurelia client application",
+                    //    PostLogoutRedirectUris =
+                    //    {
+                    //        new Uri("http://127.0.0.1:5500/index.html")
+                    //    },
+                    //    RedirectUris =
+                    //    {
+                    //        new Uri("http://127.0.0.1:5500/callback.html")
+                    //    },
+                    //    Permissions =
+                    //    {
+                    //        Permissions.Endpoints.Authorization,
+                    //        Permissions.Endpoints.Logout,
+                    //        Permissions.Endpoints.Token,
+                    //        Permissions.GrantTypes.Implicit,
+                    //        Permissions.GrantTypes.AuthorizationCode,
+                    //        Permissions.GrantTypes.Password,
+                    //        Permissions.ResponseTypes.IdToken,
+                    //        Permissions.ResponseTypes.IdTokenToken,
+                    //        Permissions.ResponseTypes.Token,
+                    //        Permissions.ResponseTypes.Code,
+                    //        Permissions.Scopes.Email,
+                    //        Permissions.Scopes.Profile,
+                    //        Permissions.Scopes.Roles,
+                    //        Permissions.Prefixes.Scope + "api1",
+                    //        Permissions.Prefixes.Scope + "api2"
+                    //    }
+                    //};
+                    //await manager.UpdateAsync(app, descriptor);
                     //var descriptor = new OpenIddictApplicationDescriptor
                     //{
                     //    ClientId = "aurelia",
@@ -102,7 +135,7 @@ namespace TrueCredit.Auth.Server
                     //await manager.UpdateAsync(descriptor);
                 }
 
-
+                // 内部api资源的授权设置
                 if (await manager.FindByClientIdAsync("resource_server_1") == null)
                 {
                     var descriptor = new OpenIddictApplicationDescriptor
