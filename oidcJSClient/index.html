@@ -9,13 +9,22 @@
 <body>
   <button id="login">Login</button>
   <button id="api">Call API</button>
+  <button id="sendMsgBtn">Send Message</button>
   <button id="logout">Logout</button>
 
   <pre id="results"></pre>
+  <div>
+    <p>接收的消息:</p>
+    <ul id="messageList">
 
+    </ul>
+  </div>
   <script src="oidc-client.js"></script>
   <script src="app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
   <script>
+    let connection = null;
+    let userName = "testUser";
     var config = {
       authority: "https://localhost:44330",
       client_id: "aurelia",
@@ -29,9 +38,27 @@
     document.getElementById("login").addEventListener("click", login, false);
     document.getElementById("api").addEventListener("click", api, false);
     document.getElementById("logout").addEventListener("click", logout, false);
+    document.getElementById("sendMsgBtn").addEventListener("click", ()=> {
+      sendChartMessage("测试消息")
+    }, false);
     mgr.getUser().then(function (user) {
       if (user) {
         log("User logged in", user.profile);
+        userName = user.profile.name;
+        // 登录成功后尝试 连接到signalR
+        connection= new signalR.HubConnectionBuilder()
+        .withUrl("http://localhost:5009/Chat",{ accessTokenFactory: () => user.access_token })
+        .build();
+        connection.onclose(async () => {
+          await startConnect();
+        });
+        startConnect();
+        connection.on("ReceiveMessage", (user, message) => {
+        const li = document.createElement("li");
+        li.textContent = `${user}: ${message}`;
+       document.getElementById("messageList").appendChild(li);
+      });
+
       }
       else {
         log("User not logged in");
@@ -62,6 +89,24 @@
     function logout() {
       mgr.signoutRedirect();
     }
+
+    async function startConnect() {
+    try {
+        await connection.start();
+        console.log("SignalR Connected.");
+      } catch (err) {
+        console.log(err);
+        setTimeout(startConnect, 5000);
+      }
+    };
+    async function sendChartMessage(str) {
+      try {
+          await connection.invoke("SendMessage", userName, str);
+          } catch (err) {
+            console.error(err);
+          }
+        }
+    
   </script>
 </body>
 

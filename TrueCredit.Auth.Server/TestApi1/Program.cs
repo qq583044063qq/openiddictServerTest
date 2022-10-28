@@ -4,8 +4,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Validation.AspNetCore;
 using TestApi1;
+using TestApi1.SignalRHubs;
 
 var builder = WebApplication.CreateBuilder(args);
+//ÅäÖÃsignalR
+builder.Services.AddSignalR();
+
 //¿çÓòÅäÖÃ
 builder.Services.AddCors(options => options.AddPolicy("CorsPolicy", builder =>
 {
@@ -52,5 +56,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("/api", [Authorize][Authorize(Policy = UserPolicyName.User)] (ClaimsPrincipal user) => $"{user.Identity!.Name} is allowed to access Api1.");
-
+app.MapHub<ChatHub>("/Chat");
 app.Run();
