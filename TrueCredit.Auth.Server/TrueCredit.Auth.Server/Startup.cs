@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -139,20 +143,52 @@ namespace TrueCredit.Auth.Server
                     // Register the ASP.NET Core host.
                     options.UseAspNetCore();
                 });
-
+            // 配置全球化资源根路径
+            services.AddLocalization(options => options.ResourcesPath = "Resources");
             services.AddCors();
-            services.AddControllersWithViews();
+            services.AddControllersWithViews()
+                .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+                .AddDataAnnotationsLocalization();
+
+
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
 
+            //配全球化支持的语言
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                var supportedCultures = new List<CultureInfo>
+                    {
+                        new CultureInfo("zh-CN")
+                    };
+
+                options.DefaultRequestCulture = new RequestCulture("zh-CN");
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+            });
             // Register the worker responsible of creating and seeding the SQL database.
             // Note: in a real world application, this step should be part of a setup script.
             services.AddHostedService<Worker>();
+
         }
 
         public void Configure(IApplicationBuilder app)
         {
             app.UseStatusCodePagesWithReExecute("/error");
+
+            var supportedCultures = new[]
+            {
+                new CultureInfo("zh-CN")
+            };
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture("zh-CN"),
+                // Formatting numbers, dates, etc.
+                SupportedCultures = supportedCultures,
+                // UI strings that we have localized.
+                SupportedUICultures = supportedCultures
+            });
+
             app.UseStaticFiles();
             app.UseRouting();
             app.UseCors(builder =>
@@ -162,8 +198,14 @@ namespace TrueCredit.Auth.Server
                 builder.WithHeaders("Authorization");
             });
 
+
+
             app.UseAuthentication();
             app.UseAuthorization();
+
+
+            app.UseRequestLocalization();
+
 
             app.UseEndpoints(options =>
             {
